@@ -1,0 +1,15 @@
+{
+  "name": "stylish-packages",
+  "description": "Smart bulk dependency updates with framework exclusions and Node-aware @types/node alignment",
+  "author": {
+    "name": "StyleList94"
+  },
+  "homepage": "https://github.com/StyleList94/agent-plugins",
+  "repository": "https://github.com/StyleList94/agent-plugins",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "stylish-packages",
+    "shortDescription": "Smart bulk dependency updates with framework exclusions and Node-aware @types/node alignment"
+  }
+}

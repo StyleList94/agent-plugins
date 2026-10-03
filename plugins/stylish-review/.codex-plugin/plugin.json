@@ -1,0 +1,15 @@
+{
+  "name": "stylish-review",
+  "description": "Interactive code review workflow with per-finding decisions",
+  "author": {
+    "name": "StyleList94"
+  },
+  "homepage": "https://github.com/StyleList94/agent-plugins",
+  "repository": "https://github.com/StyleList94/agent-plugins",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "stylish-review",
+    "shortDescription": "Interactive code review workflow with per-finding decisions"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "stylish-git",
+  "description": "Git workflow tools that write commits in the target repository's own measured voice",
+  "author": {
+    "name": "StyleList94"
+  },
+  "homepage": "https://github.com/StyleList94/agent-plugins",
+  "repository": "https://github.com/StyleList94/agent-plugins",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "stylish-git",
+    "shortDescription": "Git workflow tools that write commits in the target repository's own measured voice"
+  }
+}

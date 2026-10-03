@@ -2,24 +2,46 @@
 
 🌐 [한국어](./README.ko.md) | **English**
 
-Stylish productivity plugins for Claude Code.
+Stylish agent skills and plugins.
 
 ## Installation
 
-Add this marketplace to Claude Code:
+### Codex
+
+Installs Codex plugins.
 
 ```shell
-/plugin marketplace add stylelist94/claude-plugins
+codex plugin marketplace add StyleList94/agent-plugins
+codex plugin add stylish-git@stylish-code
+codex plugin add stylish-docs@stylish-code
+codex plugin add stylish-frontend@stylish-code
+codex plugin add stylish-review@stylish-code
+codex plugin add stylish-packages@stylish-code
+
+# Or Skills CLI (skills only)
+npx skills add StyleList94/agent-plugins -a codex
 ```
 
-Then install individual plugins:
+Update with `codex plugin marketplace upgrade`, then start a new session.
+
+For local development, register the repository path instead of `StyleList94/agent-plugins` and rerun `codex plugin add` after edits.
+
+Slash commands below use Claude Code syntax. In Codex, invoke skills by name; reviewer agents and output styles are Claude Code features.
+
+### Claude Code
+
+Installs Claude Code plugins.
 
 ```shell
+/plugin marketplace add stylelist94/agent-plugins
 /plugin install stylish-git@stylish-code
 /plugin install stylish-docs@stylish-code
 /plugin install stylish-frontend@stylish-code
 /plugin install stylish-review@stylish-code
 /plugin install stylish-packages@stylish-code
+
+# Or Skills CLI (skills only)
+npx skills add StyleList94/agent-plugins -a claude-code
 ```
 
 ## Available Plugins
@@ -101,3 +123,11 @@ Smart bulk dependency updates that protect frameworks and align `@types/node` wi
 ## License
 
 MIT
+
+## Validation
+
+```shell
+bun scripts/validate.mjs
+npx skills add . --list
+claude plugin validate .
+```

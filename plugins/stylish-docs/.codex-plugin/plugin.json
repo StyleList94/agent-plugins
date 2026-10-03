@@ -1,0 +1,15 @@
+{
+  "name": "stylish-docs",
+  "description": "Documentation generator and reviewer for README and React TSDoc",
+  "author": {
+    "name": "StyleList94"
+  },
+  "homepage": "https://github.com/StyleList94/agent-plugins",
+  "repository": "https://github.com/StyleList94/agent-plugins",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "stylish-docs",
+    "shortDescription": "Documentation generator and reviewer for README and React TSDoc"
+  }
+}

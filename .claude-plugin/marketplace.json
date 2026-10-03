@@ -15,8 +15,8 @@
       "category": "git",
       "keywords": ["git", "commit", "rebase", "squash", "conventional-commits", "branch-cleanup", "worktree", "pull-request", "pr-summary"],
       "author": { "name": "StyleList94" },
-      "homepage": "https://github.com/StyleList94/claude-plugins",
-      "repository": "https://github.com/StyleList94/claude-plugins",
+      "homepage": "https://github.com/StyleList94/agent-plugins",
+      "repository": "https://github.com/StyleList94/agent-plugins",
       "license": "MIT",
       "strict": false
     },
@@ -27,8 +27,8 @@
       "category": "documentation",
       "keywords": ["docs", "documentation", "tsdoc", "readme", "review"],
       "author": { "name": "StyleList94" },
-      "homepage": "https://github.com/StyleList94/claude-plugins",
-      "repository": "https://github.com/StyleList94/claude-plugins",
+      "homepage": "https://github.com/StyleList94/agent-plugins",
+      "repository": "https://github.com/StyleList94/agent-plugins",
       "license": "MIT",
       "strict": false
     },
@@ -39,8 +39,8 @@
       "category": "frontend",
       "keywords": ["frontend", "react", "figma", "vitest", "testing", "components", "tailwind", "workflow", "accessibility"],
       "author": { "name": "StyleList94" },
-      "homepage": "https://github.com/StyleList94/claude-plugins",
-      "repository": "https://github.com/StyleList94/claude-plugins",
+      "homepage": "https://github.com/StyleList94/agent-plugins",
+      "repository": "https://github.com/StyleList94/agent-plugins",
       "license": "MIT",
       "strict": false
     },
@@ -51,8 +51,8 @@
       "category": "code-review",
       "keywords": ["code-review", "review", "pr", "diff", "interactive", "claude-md", "walkthrough"],
       "author": { "name": "StyleList94" },
-      "homepage": "https://github.com/StyleList94/claude-plugins",
-      "repository": "https://github.com/StyleList94/claude-plugins",
+      "homepage": "https://github.com/StyleList94/agent-plugins",
+      "repository": "https://github.com/StyleList94/agent-plugins",
       "license": "MIT",
       "strict": false
     },
@@ -63,8 +63,8 @@
       "category": "dependencies",
       "keywords": ["dependencies", "npm", "pnpm", "yarn", "bun", "update", "upgrade", "outdated", "types-node", "smart-update"],
       "author": { "name": "StyleList94" },
-      "homepage": "https://github.com/StyleList94/claude-plugins",
-      "repository": "https://github.com/StyleList94/claude-plugins",
+      "homepage": "https://github.com/StyleList94/agent-plugins",
+      "repository": "https://github.com/StyleList94/agent-plugins",
       "license": "MIT",
       "strict": false
     }

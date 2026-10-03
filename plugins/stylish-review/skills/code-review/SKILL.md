@@ -5,6 +5,26 @@ argument-hint: "[PR-number] [--local]"
 tools: Bash, Read, Edit, Glob, Grep, AskUserQuestion, TaskCreate, TaskUpdate, Agent
 ---
 
+## Agent compatibility
+
+For Codex, apply these mappings throughout this workflow:
+- Read applicable global, repository, and nested AGENTS.md instructions instead of assuming ~/.claude/CLAUDE.md exists. Review only rules that govern each changed file. Keep the existing `claude-md` category tag for compatibility; it means host instruction compliance.
+- Use available subagent tools and host-selected models; Haiku and Sonnet are Claude examples, not required models. Bound concurrency to the host limit. If delegation is unavailable, run the same review roles sequentially and disclose that execution mode.
+- TaskCreate, TaskUpdate, and TaskList refer to a finding ledger. If those tools are unavailable, persist the ledger as JSON under the target repository's Git metadata directory: resolve it with `git rev-parse --git-path stylish-review/findings.json`. Store the repository, base and head revisions, stable finding IDs, evidence, scores, proposed fixes, status and user decisions. Update after each decision. Read it on resume and revalidate evidence against the current files; do not blindly reuse stale patches.
+- The “no report file” rule below applies to narrative reports, not this private ledger. Report the ledger path and deferred IDs at wrap-up. No cross-session persistence may be claimed without a durable ledger or host task storage.
+- Asking a question is a blocking workflow step: never interpret a timeout or missing reply as Apply, Dismiss, or permission.
+
+
+This skill is shared by Claude Code and Codex, through native plugins or the skills CLI.
+Use the host's available tools for shell commands, file reads, edits, and user questions.
+Tool names in this document describe capabilities; do not call tools that the host does not expose.
+If a question tool is unavailable, ask in conversation and wait for the answer before dependent actions.
+Respect the host's instruction hierarchy and the user's existing authorization.
+In Codex, follow applicable AGENTS.md instructions; in Claude Code, follow applicable CLAUDE.md instructions.
+Resolve bundled files relative to the directory containing this loaded SKILL.md, even when the target repository is elsewhere.
+Claude slash-command examples are examples of user intent. In Codex, invoke the discovered skill by its name; for cross-skill steps, load the named sibling skill if available.
+If a required sibling skill is missing, report the dependency rather than inventing its instructions.
+
 # Interactive Code Review
 
 Run the full 5-agent code review pipeline on a diff (PR or local), surface every finding regardless of confidence score, and walk the user through each one with an apply/modify/defer/dismiss decision.

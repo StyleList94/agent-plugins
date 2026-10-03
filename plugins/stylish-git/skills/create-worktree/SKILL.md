@@ -5,6 +5,18 @@ argument-hint: "[branch-name or description]"
 tools: Bash, Read, AskUserQuestion
 ---
 
+## Agent compatibility
+
+This skill is shared by Claude Code and Codex, through native plugins or the skills CLI.
+Use the host's available tools for shell commands, file reads, edits, and user questions.
+Tool names in this document describe capabilities; do not call tools that the host does not expose.
+If a question tool is unavailable, ask in conversation and wait for the answer before dependent actions.
+Respect the host's instruction hierarchy and the user's existing authorization.
+In Codex, follow applicable AGENTS.md instructions; in Claude Code, follow applicable CLAUDE.md instructions.
+Resolve bundled files relative to the directory containing this loaded SKILL.md, even when the target repository is elsewhere.
+Claude slash-command examples are examples of user intent. In Codex, invoke the discovered skill by its name; for cross-skill steps, load the named sibling skill if available.
+If a required sibling skill is missing, report the dependency rather than inventing its instructions.
+
 # Create Worktree
 
 Create a git worktree as a sibling directory of the current project and set up the development environment.
@@ -73,13 +85,13 @@ After installing dependencies, run the `build` script from `package.json` if it 
 
 Worktrees do not include `.gitignore`d files, so copy necessary config from the original.
 
-### .claude directory
+### Host configuration directories
 
-Scan the entire tree since nested packages may also have `.claude/` directories.
+For Claude Code, scan for `.claude/`; for Codex, scan for `.codex/` and `.agents/`. Copy only the host configuration needed for the worktree. Review ignored configuration before copying; do not copy credentials or unrelated caches. Set `host_config_dir` to one of those directory names, then run this for each required directory.
 
 ```bash
 cd "$git_root"
-fd -H -I -t d --glob '.claude' --exclude node_modules --exclude .git \
+fd -H -I -t d --glob "$host_config_dir" --exclude node_modules --exclude .git \
   | while read dir; do
       mkdir -p "$worktree_dir/$dir"
       cp -r "$dir/." "$worktree_dir/$dir/"

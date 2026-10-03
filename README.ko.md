@@ -2,24 +2,46 @@
 
 🌐 **한국어** | [English](./README.md)
 
-맵시나는 Claude Code 플러그인 모음.
+맵시나는 에이전트 스킬·플러그인 모음.
 
 ## 설치
 
-마켓플레이스를 Claude Code에 추가합니다:
+### Codex
+
+Codex 플러그인을 설치합니다.
 
 ```shell
-/plugin marketplace add stylelist94/claude-plugins
+codex plugin marketplace add StyleList94/agent-plugins
+codex plugin add stylish-git@stylish-code
+codex plugin add stylish-docs@stylish-code
+codex plugin add stylish-frontend@stylish-code
+codex plugin add stylish-review@stylish-code
+codex plugin add stylish-packages@stylish-code
+
+# 또는 Skills CLI로 스킬만 설치
+npx skills add StyleList94/agent-plugins -a codex
 ```
 
-개별 플러그인을 설치합니다:
+업데이트는 `codex plugin marketplace upgrade` 실행 후 새 세션을 시작하면 됩니다.
+
+로컬 개발 시 저장소 이름 대신 로컬 경로를 등록하고, 수정 후 `codex plugin add`를 다시 실행하세요.
+
+아래 슬래시 명령은 Claude Code 문법입니다. Codex에서는 스킬 이름으로 호출하며, 리뷰 에이전트와 출력 스타일은 Claude Code 기능입니다.
+
+### Claude Code
+
+Claude Code 플러그인을 설치합니다.
 
 ```shell
+/plugin marketplace add stylelist94/agent-plugins
 /plugin install stylish-git@stylish-code
 /plugin install stylish-docs@stylish-code
 /plugin install stylish-frontend@stylish-code
 /plugin install stylish-review@stylish-code
 /plugin install stylish-packages@stylish-code
+
+# 또는 Skills CLI로 스킬만 설치
+npx skills add StyleList94/agent-plugins -a claude-code
 ```
 
 ## 사용 가능한 플러그인
@@ -103,3 +125,11 @@ Git 워크플로우 도구 모음.
 ## 라이선스
 
 MIT
+
+## 검증
+
+```shell
+bun scripts/validate.mjs
+npx skills add . --list
+claude plugin validate .
+```
