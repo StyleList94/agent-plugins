@@ -31,7 +31,7 @@ const validateSkill = (skillRoot, label) => {
   const header = body.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1];
   check(header !== undefined, `${label}: missing frontmatter`);
   const name = header.match(/^name: (.+)$/m)?.[1].trim();
-  check(name, `${label}: missing or duplicate skill name`);
+  check(name, `${label}: missing skill name`);
   check(/^description: /m.test(header), `${name}: missing description`);
   check(body.includes('## Agent compatibility'), `${name}: missing agent compatibility section`);
   check(!body.includes('${CLAUDE_SKILL_DIR}'), `${name}: contains Claude-only skill directory variable`);
@@ -63,7 +63,7 @@ const validatePlugin = (root, claude, entry) => {
 
 const validateUniqueSkills = (skills) => {
   skills.forEach(({ name, label }, index) => {
-    check(skills.findIndex((skill) => skill.name === name) === index, `${label}: missing or duplicate skill name`);
+    check(skills.findIndex((skill) => skill.name === name) === index, `${label}: duplicate skill name`);
   });
 };
 
