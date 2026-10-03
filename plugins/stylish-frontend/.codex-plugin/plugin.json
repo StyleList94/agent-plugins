@@ -1,0 +1,15 @@
+{
+  "name": "stylish-frontend",
+  "description": "Frontend component development workflow: Figma to code, testing, review, and orchestration",
+  "author": {
+    "name": "StyleList94"
+  },
+  "homepage": "https://github.com/StyleList94/agent-plugins",
+  "repository": "https://github.com/StyleList94/agent-plugins",
+  "license": "MIT",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "stylish-frontend",
+    "shortDescription": "Frontend component development workflow: Figma to code, testing, review, and orchestration"
+  }
+}

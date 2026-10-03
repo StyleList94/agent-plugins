@@ -1,0 +1,68 @@
+{
+  "name": "stylish-code",
+  "interface": {
+    "displayName": "Stylish Code"
+  },
+  "plugins": [
+    {
+      "name": "stylish-git",
+      "source": {
+        "source": "local",
+        "path": "./plugins/stylish-git"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "stylish-docs",
+      "source": {
+        "source": "local",
+        "path": "./plugins/stylish-docs"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "stylish-frontend",
+      "source": {
+        "source": "local",
+        "path": "./plugins/stylish-frontend"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "stylish-review",
+      "source": {
+        "source": "local",
+        "path": "./plugins/stylish-review"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    },
+    {
+      "name": "stylish-packages",
+      "source": {
+        "source": "local",
+        "path": "./plugins/stylish-packages"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

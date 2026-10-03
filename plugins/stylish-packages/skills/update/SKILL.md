@@ -4,6 +4,18 @@ description: Smart bulk update of npm/pnpm/yarn/bun dependencies. Skips framewor
 tools: Bash, Read, AskUserQuestion
 ---
 
+## Agent compatibility
+
+This skill is shared by Claude Code and Codex, through native plugins or the skills CLI.
+Use the host's available tools for shell commands, file reads, edits, and user questions.
+Tool names in this document describe capabilities; do not call tools that the host does not expose.
+If a question tool is unavailable, ask in conversation and wait for the answer before dependent actions.
+Respect the host's instruction hierarchy and the user's existing authorization.
+In Codex, follow applicable AGENTS.md instructions; in Claude Code, follow applicable CLAUDE.md instructions.
+Resolve bundled files relative to the directory containing this loaded SKILL.md, even when the target repository is elsewhere.
+Claude slash-command examples are examples of user intent. In Codex, invoke the discovered skill by its name; for cross-skill steps, load the named sibling skill if available.
+If a required sibling skill is missing, report the dependency rather than inventing its instructions.
+
 Bulk-update project dependencies safely: bump everything that's truly safe, hold back frameworks that need manual migration, hand off packages that ship their own upgrade CLI, and keep `@types/node` aligned with the user's actual Node runtime — not with whatever version the registry happens to publish next.
 
 The reason these distinctions matter: a naïve `npm update --latest` will silently move frameworks (TypeScript, Next.js, React, etc.) across breaking versions, will fight with tools that have first-party upgrade scripts (Storybook, shadcn, Prisma), and will install `@types/node` versions that describe APIs the user's runtime doesn't have. Each of those is a separate failure mode, and each needs a different treatment.

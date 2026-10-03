@@ -1,9 +1,10 @@
 {
   "name": "stylish-review",
   "description": "Interactive code review workflow: run full review pipeline and walk through findings one-by-one",
-  "version": "0.1.0",
-  "author": { "name": "StyleList94" },
-  "homepage": "https://github.com/StyleList94/claude-plugins",
-  "repository": "https://github.com/StyleList94/claude-plugins",
+  "author": {
+    "name": "StyleList94"
+  },
+  "homepage": "https://github.com/StyleList94/agent-plugins",
+  "repository": "https://github.com/StyleList94/agent-plugins",
   "license": "MIT"
 }
