@@ -26,7 +26,7 @@ Update with `codex plugin marketplace upgrade`, then start a new session.
 
 For local development, register the repository path instead of `StyleList94/agent-plugins` and rerun `codex plugin add` after edits.
 
-Slash commands below use Claude Code syntax. In Codex, invoke skills by name; reviewer agents and output styles are Claude Code features.
+Slash commands below use Claude Code syntax. In Codex, invoke skills by name; reviewer agents and output styles are Claude Code features. `stylish-teammates` is a Claude Code mod and is not offered to Codex.
 
 ### Claude Code
 
@@ -39,6 +39,7 @@ Installs Claude Code plugins.
 /plugin install stylish-frontend@stylish-code
 /plugin install stylish-review@stylish-code
 /plugin install stylish-packages@stylish-code
+/plugin install stylish-teammates@stylish-code
 
 # Or Skills CLI (skills only)
 npx skills add StyleList94/agent-plugins -a claude-code
@@ -119,6 +120,19 @@ Smart bulk dependency updates that protect frameworks and align `@types/node` wi
 **Skills:**
 
 - `/stylish-packages:update` - Bulk-update deps across npm/pnpm/yarn/bun. Auto-bumps safe patches/minors, asks per-package for majors, holds back frameworks (TypeScript, Next.js, React, etc.) and self-upgrading packages (Storybook, Prisma, shadcn, etc.) with the right CLI hint.
+
+---
+
+### stylish-teammates
+
+Live board of agent-team teammates and their tasks. Claude Code only: it is a mod, a plugin whose hooks run inside the Claude Code engine.
+
+- **Band above the prompt** - teammate counts by state and task progress (`tasks 2/5 done · 1 active · 1 blocked`), the task list itself (`✓` done, `▸` in progress, `⊘` blocked, `◌` pending), and a chip for the main loop and each running agent with its current tool
+- **`/teammates` pane** - every agent with status, turns and current tool, the task list, and the main loop's recent tool calls with what each edit changed (Prev / Next to step through)
+- **`task` tool** (`mcp__stylish-teammates__task`) - a task list Claude keeps for any multi-step work, alone or shared by the lead and teammates: create, update, delete, list, with owners and blockers. Tasks are kept per team in `~/.claude/stylish-teammates/boards/<team>.json`
+- **Toasts** - when a teammate ends and when a task completes
+
+> **Note:** Requires a Claude Code build with mods support. The tool is offered from the prompt after the plugin loads. Teammates running in their own tmux panes report only their status to the lead; per-tool detail shows for in-process agents.
 
 ## License
 

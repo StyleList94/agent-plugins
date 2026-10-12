@@ -1,0 +1,6 @@
+{
+  "name": "stylish-teammates",
+  "description": "Live board of agent-team teammates and their tasks: a band above the prompt and a /teammates pane",
+  "author": { "name": "StyleList94" },
+  "types": "./types/index.d.ts"
+}

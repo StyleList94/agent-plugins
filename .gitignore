@@ -14,3 +14,6 @@ Thumbs.db
 # Temp
 *.log
 tmp/
+
+# Claude Code mod types, generated on load
+plugins/*/.claude-plugin/types/
