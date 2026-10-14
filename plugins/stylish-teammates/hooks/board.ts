@@ -168,6 +168,26 @@ export const isTeamName = (name: string | undefined): name is string =>
 
 export const boardFile = (home: string, team: string) => `${home}/.claude/stylish-teammates/boards/${team}.json`
 
+/**
+ * The team a session's transcript shows it is a teammate of: each of a teammate's turns carries its team and its name.
+ * `null` once a turn shows it is no teammate, `undefined` while no turn is written yet.
+ */
+export function teamOfTranscript(text: string): string | null | undefined {
+  for (const line of text.split('\n')) {
+    let record: unknown
+    try {
+      record = JSON.parse(line)
+    } catch {
+      continue
+    }
+    if (typeof record !== 'object' || record === null) continue
+    const one = record as Record<string, unknown>
+    if (one.type !== 'user' && one.type !== 'assistant') continue
+    return typeof one.teamName === 'string' && isTeamName(one.teamName) && typeof one.agentName === 'string' ? one.teamName : null
+  }
+  return undefined
+}
+
 /** The board in use, starting from `team` and following each board that was left for another. */
 export async function settle(team: string, load: (team: string) => Promise<string | undefined>): Promise<string> {
   const seen = new Set<string>()

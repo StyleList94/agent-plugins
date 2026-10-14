@@ -2,7 +2,7 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { AgentRow, TaskRow } from '../types'
-import { TOOL_SPEC, applyAction, boardFile, isTeamName, parseBoard, readBoard, settle, toRows } from './board'
+import { TOOL_SPEC, applyAction, boardFile, isTeamName, parseBoard, readBoard, settle, teamOfTranscript, toRows } from './board'
 import type { TaskAction, TeamConfig } from './board'
 import {
   GLYPH,
@@ -34,6 +34,8 @@ const BAND_TASKS = 5
 const LOG_ROWS = 6
 const OWN_TOOL = 'mcp__stylish-teammates__task'
 const TASK_TOOLS = new Set(['TaskCreate', 'TaskUpdate', 'TaskList', 'TodoWrite'])
+// A teammate's transcript names its team within its first lines; one this long is a resumed session's.
+const TRANSCRIPT_MAX = 512 * 1024
 
 const agents = atom({ plugin: 'stylish-teammates', key: 'agents' } as const, [])
 const main = atom({ plugin: 'stylish-teammates', key: 'main' } as const, MAIN)
@@ -86,8 +88,39 @@ async function resolveBoardPath($: EngineInterface): Promise<string> {
 
 let boardPath: string | undefined
 let boardMtime = -1
+let transcriptPath: string | undefined
+let transcriptSize = -1
+let isTranscriptSettled = false
+
+/**
+ * A pane's id finds a teammate's team only where the host records the id the
+ * pane itself sees. The transcript names the team on every host, so once it
+ * has a turn it decides.
+ */
+async function joinTeam($: EngineInterface): Promise<void> {
+  if (isTranscriptSettled || transcriptPath === undefined) return
+  let size: number
+  try {
+    size = (await $.fs.stat(transcriptPath)).size
+  } catch {
+    return
+  }
+  if (size === transcriptSize) return
+  transcriptSize = size
+  if (size <= TRANSCRIPT_MAX) {
+    const found = teamOfTranscript(await $.fs.read(transcriptPath).catch(() => ''))
+    if (found === undefined) return
+    if (found !== null) {
+      await update($, team, () => found)
+      boardPath = boardFile((await $.env.get('HOME')) ?? '~', found)
+      boardMtime = -1
+    }
+  }
+  isTranscriptSettled = true
+}
 
 async function pathOf($: EngineInterface): Promise<string> {
+  await joinTeam($)
   if (boardPath !== undefined) return boardPath
   const adopted = await read($, team)
   boardPath = adopted === '' ? await resolveBoardPath($) : boardFile((await $.env.get('HOME')) ?? '~', adopted)
@@ -178,6 +211,20 @@ export const register: Register = on => {
 
     return next(e)
   })
+
+  // The transcript's path reaches a mod only on the classic events.
+  on('classic.SessionStart', async ($, e, next) => {
+    transcriptPath = e.transcript_path || transcriptPath
+
+    return next(e)
+  }).catch(($, e, next) => next(e))
+
+  on('classic.PostToolUse', async ($, e, next) => {
+    // A subagent's call reports the transcript of the loop it runs in; only the main loop's is this session's.
+    if (e.agent_id === undefined) transcriptPath = e.transcript_path || transcriptPath
+
+    return next(e)
+  }).catch(($, e, next) => next(e))
 
   on('command.run', { command: 'teammates' }, async $ => {
     await refresh($)

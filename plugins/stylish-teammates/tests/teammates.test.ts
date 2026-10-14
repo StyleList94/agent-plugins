@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'claude-code/testing'
 import type { AgentInfo, On, RenderElement } from 'claude-code'
 
-import { applyAction, emptyBoard, isTeamName, parseBoard, readBoard, settle, toRows } from '../hooks/board'
+import { applyAction, emptyBoard, isTeamName, parseBoard, readBoard, settle, teamOfTranscript, toRows } from '../hooks/board'
 import type { TaskAction } from '../hooks/board'
 import { ENDED_KEEP_MS, bandTasks, describeCall, diffLines, isBlocked, logCall, logView, mergeAgents, newlyEnded, summary, taskLine } from '../hooks/model'
 import type { TaskRow, WorkEntry } from '../types'
@@ -261,8 +261,8 @@ describe('board file', () => {
   const task = (id: string, subject: string) => ({ id, subject, status: 'pending', blockedBy: [], updatedAt: 1000 })
   const file = (nextId: number, tasks: unknown[], rest: object = {}) => JSON.stringify({ version: 1, nextId, tasks, ...rest }, null, 2)
 
-  /** One process of session `aaaaaaaa…` over these files alone, with these agents listed. */
-  const boot = (on: On, files: Map<string, string>, listed: AgentInfo[]) => {
+  /** One process of session `aaaaaaaa…` over these files alone, with these agents listed and each read counted. */
+  const boot = (on: On, files: Map<string, string>, listed: AgentInfo[], reads = new Map<string, number>()) => {
     on('session.id', () => ({ value: 'aaaaaaaa-0000-4000-8000-000000000000' }))
     on('env.get', (_$, e) => ({ value: e.name === 'HOME' ? HOME : undefined }))
     on('agent.list', () => ({ value: listed }))
@@ -270,7 +270,15 @@ describe('board file', () => {
     on('ui.open', () => ({ value: { isPlaced: false, reason: 'no surface' } }))
     on('fs.list', () => ({ value: [] }))
     on('fs.exists', (_$, e) => ({ value: files.has(e.path) }))
-    on('fs.read', (_$, e) => (files.has(e.path) ? { value: files.get(e.path)! } : { deny: 'no such file' }))
+    on('fs.read', (_$, e) => {
+      reads.set(e.path, (reads.get(e.path) ?? 0) + 1)
+      return files.has(e.path) ? { value: files.get(e.path)! } : { deny: 'no such file' }
+    })
+    on('fs.stat', (_$, e) =>
+      files.has(e.path) ? { value: { kind: 'file', size: files.get(e.path)!.length, mtimeMs: 1, isLink: false } } : { deny: 'no such file' },
+    )
+    on('classic.SessionStart', () => ({}) as never)
+    on('classic.PostToolUse', () => ({}) as never)
     on('fs.write', (_$, e) => {
       files.set(e.path, e.text)
       return { value: undefined }
@@ -340,5 +348,98 @@ describe('board file', () => {
 
     const out = (await $.tool.call({ tool: 'mcp__stylish-teammates__task', action: 'list' } as never)) as { result?: unknown }
     expect(out.result).toBe('#1 [pending] Before the team\n#2 [pending] With the team')
+  })
+
+  const transcript = `${HOME}/.claude/projects/-work/aaaaaaaa-0000-4000-8000-000000000000.jsonl`
+  const opening = ['{"type":"agent-setting","agentSetting":"claude"}', '{"type":"mode","mode":"normal"}']
+  const turn = (rest: object) => JSON.stringify({ type: 'user', message: { role: 'user', content: 'go' }, ...rest })
+  const lines = (...records: string[]) => records.join('\n') + '\n'
+  const asTeammate = lines(...opening, turn({ teamName: 'team-x', agentName: 'impl-x' }))
+  const list = async ($: { tool: { call: (e: never) => Promise<unknown> } }) =>
+    ((await $.tool.call({ tool: 'mcp__stylish-teammates__task', action: 'list' } as never)) as { result?: unknown }).result
+
+  test('a transcript names the team of a teammate, and of no one else', async () => {
+    expect(teamOfTranscript(asTeammate)).toBe('team-x')
+    expect(teamOfTranscript(lines(...opening, '{not json', turn({ teamName: 'team-x', agentName: 'impl-x' })))).toBe('team-x')
+    // A lead's turns carry no team, and one turn settles it.
+    expect(teamOfTranscript(lines(...opening, turn({}), turn({ teamName: 'team-x', agentName: 'impl-x' })))).toBe(null)
+    expect(teamOfTranscript(lines(...opening, turn({ teamName: 'team-x' })))).toBe(null)
+    expect(teamOfTranscript(lines(...opening, turn({ teamName: '../../x', agentName: 'impl-x' })))).toBe(null)
+    // No turn yet: nothing is known either way.
+    expect(teamOfTranscript(lines(...opening))).toBe(undefined)
+    expect(teamOfTranscript('')).toBe(undefined)
+  })
+
+  test('a teammate no pane names still works on the board of its team', async ($, on) => {
+    const files = new Map([
+      [shared, file(2, [task('1', 'From the lead')])],
+      [transcript, asTeammate],
+    ])
+    boot(on, files, [])
+
+    await $.classic.SessionStart({ source: 'startup', transcript_path: transcript } as never)
+
+    expect(await list($)).toBe('#1 [pending] From the lead')
+    await $.tool.call({ tool: 'mcp__stylish-teammates__task', action: 'update', taskId: '1', status: 'completed' } as never)
+    expect(parseBoard(files.get(shared)).tasks.map(row => row.status)).toEqual(['completed'])
+    expect(files.has(own)).toBe(false)
+  })
+
+  test('a teammate whose transcript has no turn yet joins its team once it has one', async ($, on) => {
+    const files = new Map([
+      [shared, file(2, [task('1', 'From the lead')])],
+      [transcript, lines(...opening)],
+    ])
+    boot(on, files, [])
+
+    await $.classic.SessionStart({ source: 'startup', transcript_path: transcript } as never)
+    expect(await list($)).toBe('The board is empty.')
+
+    files.set(transcript, asTeammate)
+    expect(await list($)).toBe('#1 [pending] From the lead')
+  })
+
+  test('a tool call of the main loop tells where the transcript is, and a subagent\'s does not', async ($, on) => {
+    const files = new Map([
+      [own, file(2, [task('1', 'Mine')])],
+      [shared, file(2, [task('1', 'From the lead')])],
+      [transcript, asTeammate],
+    ])
+    boot(on, files, [])
+    const ran = { tool_name: 'Bash', tool_input: {}, tool_response: {}, tool_use_id: 't1', transcript_path: transcript }
+
+    await $.classic.PostToolUse({ ...ran, agent_id: 'a1' } as never)
+    expect(await list($)).toBe('#1 [pending] Mine')
+
+    await $.classic.PostToolUse(ran as never)
+    expect(await list($)).toBe('#1 [pending] From the lead')
+  })
+
+  test('a session that is no teammate keeps its own board and reads its transcript once', async ($, on) => {
+    const files = new Map([
+      [own, file(2, [task('1', 'Mine')])],
+      [shared, file(2, [task('1', 'From the lead')])],
+      [transcript, lines(...opening, turn({}))],
+    ])
+    const reads = new Map<string, number>()
+    boot(on, files, [], reads)
+
+    await $.classic.SessionStart({ source: 'startup', transcript_path: transcript } as never)
+    expect(await list($)).toBe('#1 [pending] Mine')
+    expect(await list($)).toBe('#1 [pending] Mine')
+    expect(reads.get(transcript)).toBe(1)
+  })
+
+  test('a transcript that has grown long is left unread', async ($, on) => {
+    const files = new Map([
+      [own, file(2, [task('1', 'Mine')])],
+      [transcript, lines(...opening, turn({ teamName: 'team-x', agentName: 'impl-x', padding: 'x'.repeat(600_000) }))],
+    ])
+    const reads = new Map<string, number>()
+    boot(on, files, [], reads)
+
+    await $.classic.SessionStart({ source: 'resume', transcript_path: transcript } as never)
+    expect(await list($)).toBe('#1 [pending] Mine')
+    expect(reads.get(transcript)).toBe(undefined)
   })
 })
