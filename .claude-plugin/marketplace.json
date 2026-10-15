@@ -67,6 +67,18 @@
       "repository": "https://github.com/StyleList94/agent-plugins",
       "license": "MIT",
       "strict": false
+    },
+    {
+      "name": "stylish-teammates",
+      "source": "./plugins/stylish-teammates",
+      "description": "Live board of agent-team teammates and their tasks: a band above the prompt and a /teammates pane",
+      "category": "productivity",
+      "keywords": ["agent-teams", "teammates", "tasks", "progress", "mod"],
+      "author": { "name": "StyleList94" },
+      "homepage": "https://github.com/StyleList94/agent-plugins",
+      "repository": "https://github.com/StyleList94/agent-plugins",
+      "license": "MIT",
+      "strict": false
     }
   ]
 }

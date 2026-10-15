@@ -13,7 +13,30 @@ function check(condition, message) {
 const pluginNames = (catalog) => [...new Set(catalog.plugins.map((p) => p.name))].sort();
 const validateCatalogs = (claude, codex) => {
   check(claude.name === codex.name, 'Marketplace names differ');
-  check(JSON.stringify(pluginNames(claude)) === JSON.stringify(pluginNames(codex)), 'Marketplace plugin sets differ');
+  const claudeNames = pluginNames(claude);
+  check(pluginNames(codex).every((name) => claudeNames.includes(name)), 'Marketplace plugin sets differ');
+};
+
+const localRoot = (root, path, label) => {
+  const pluginRoot = realpathSync(join(root, path));
+  const pathWithinRoot = relative(root, pluginRoot);
+  check(!isAbsolute(pathWithinRoot) && pathWithinRoot !== '..' && !pathWithinRoot.startsWith('../'), `${label}: source escapes repository`);
+  return pluginRoot;
+};
+
+// Mods run only inside the Claude Code engine, so they are the one kind of plugin
+// allowed in the Claude catalog without a Codex entry.
+const validateMod = (root, entry) => {
+  const label = entry.name;
+  check(typeof entry.source === 'string' && entry.source.startsWith('./'), `${label}: expected a relative local source`);
+  const pluginRoot = localRoot(root, entry.source, label);
+  const hooksPath = join(pluginRoot, 'hooks/hooks.json');
+  const modules = existsSync(hooksPath) ? json(hooksPath).modules : undefined;
+  check(Array.isArray(modules) && modules.length > 0, `${label}: missing from the Codex catalog`);
+  check(!existsSync(join(pluginRoot, '.codex-plugin')), `${label}: mod has a Codex manifest`);
+  const manifest = json(join(pluginRoot, '.claude-plugin/plugin.json'));
+  check(manifest.name === label, `${label}: manifest name differs`);
+  check(!('version' in manifest) && !('version' in entry), `${label}: omit plugin versions`);
 };
 
 const validateScripts = (skillRoot, name) => {
@@ -43,9 +66,7 @@ const validatePlugin = (root, claude, entry) => {
   const { source } = entry;
   const label = entry.name;
   check(source.source === 'local' && source.path.startsWith('./'), `${label}: expected a relative local source`);
-  const pluginRoot = realpathSync(join(root, source.path));
-  const pathWithinRoot = relative(root, pluginRoot);
-  check(!isAbsolute(pathWithinRoot) && pathWithinRoot !== '..' && !pathWithinRoot.startsWith('../'), `${label}: source escapes repository`);
+  const pluginRoot = localRoot(root, source.path, label);
   const original = claude.plugins.find((p) => p.name === label);
   check(realpathSync(join(root, original.source)) === pluginRoot, `${label}: host source paths differ`);
   const manifest = json(join(pluginRoot, '.codex-plugin/plugin.json'));
@@ -73,8 +94,11 @@ const validateRepository = (root) => {
   validateCatalogs(claude, codex);
   const skills = codex.plugins.flatMap((entry) => validatePlugin(root, claude, entry));
   validateUniqueSkills(skills);
-  return { plugins: codex.plugins.length, skills: skills.length };
+  const shared = pluginNames(codex);
+  const mods = claude.plugins.filter((entry) => !shared.includes(entry.name));
+  mods.forEach((entry) => validateMod(root, entry));
+  return { plugins: codex.plugins.length, skills: skills.length, mods: mods.length };
 };
 
 const result = validateRepository(root);
-console.log(`Validated ${result.plugins} plugins and ${result.skills} shared skills`);
+console.log(`Validated ${result.plugins} plugins, ${result.skills} shared skills and ${result.mods} Claude Code mods`);

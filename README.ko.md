@@ -26,7 +26,7 @@ npx skills add StyleList94/agent-plugins -a codex
 
 로컬 개발 시 저장소 이름 대신 로컬 경로를 등록하고, 수정 후 `codex plugin add`를 다시 실행하세요.
 
-아래 슬래시 명령은 Claude Code 문법입니다. Codex에서는 스킬 이름으로 호출하며, 리뷰 에이전트와 출력 스타일은 Claude Code 기능입니다.
+아래 슬래시 명령은 Claude Code 문법입니다. Codex에서는 스킬 이름으로 호출하며, 리뷰 에이전트와 출력 스타일은 Claude Code 기능입니다. `stylish-teammates`는 Claude Code mod라서 Codex에는 제공되지 않습니다.
 
 ### Claude Code
 
@@ -39,6 +39,7 @@ Claude Code 플러그인을 설치합니다.
 /plugin install stylish-frontend@stylish-code
 /plugin install stylish-review@stylish-code
 /plugin install stylish-packages@stylish-code
+/plugin install stylish-teammates@stylish-code
 
 # 또는 Skills CLI로 스킬만 설치
 npx skills add StyleList94/agent-plugins -a claude-code
@@ -121,6 +122,19 @@ Git 워크플로우 도구 모음.
 **스킬:**
 
 - `/stylish-packages:update` - npm/pnpm/yarn/bun 전부 지원. 패치/마이너 안전한 것은 한 번에 일괄 업데이트, 메이저는 한 건씩 확인, 프레임워크(TypeScript, Next.js, React 등)와 자체 업그레이드 도구가 있는 패키지(Storybook, Prisma, shadcn 등)는 보류하고 적절한 CLI 명령어를 안내합니다.
+
+---
+
+### stylish-teammates
+
+에이전트 팀 팀메이트와 태스크 진행 상황을 실시간으로 보여주는 보드. Claude Code 전용입니다. 훅이 Claude Code 엔진 안에서 실행되는 플러그인(mod)입니다.
+
+- **입력창 위 띠** - 상태별 팀메이트 수와 태스크 진행률(`tasks 2/5 done · 1 active · 1 blocked`), 태스크 목록(`✓` 완료, `▸` 진행 중, `⊘` 막힘, `◌` 대기), 메인과 실행 중인 에이전트마다 지금 쓰는 도구 칩
+- **`/teammates` 패널** - 에이전트별 상태, 턴 수, 현재 도구, 태스크 목록, 그리고 메인의 최근 도구 호출과 수정 내용(Prev / Next로 넘겨보기)
+- **`task` 도구** (`mcp__stylish-teammates__task`) - 여러 단계 작업이면 Claude가 혼자서도 쓰고, 팀에서는 리드와 팀메이트가 함께 쓰는 태스크 목록. 생성·수정·삭제·조회, 담당자와 선행 태스크 지정. 팀별로 `~/.claude/stylish-teammates/boards/<team>.json`에 저장됩니다
+- **토스트** - 팀메이트가 끝났을 때, 태스크가 완료됐을 때
+
+> **참고:** mod를 지원하는 Claude Code 빌드가 필요합니다. 도구는 플러그인이 로드된 다음 프롬프트부터 제공됩니다. 별도 tmux 패널에서 도는 팀메이트는 리드에게 상태만 보고되고, 도구 단위 상세는 in-process 에이전트만 보입니다.
 
 ## 라이선스
 
