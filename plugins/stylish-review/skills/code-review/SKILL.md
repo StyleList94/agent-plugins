@@ -73,7 +73,7 @@ Then:
 
 Subagents inherit nothing from the user's CLAUDE.md by default. Every dispatch prompt in Steps 3, 4, and 6 MUST include the following baseline so subagents behave consistently and don't trip safety warnings:
 
-- **Absolute working directory** — the absolute path of the target repo. Especially important for monorepos where directory names repeat (e.g. `<root>/imwebme/packages/packages/clay-ai-poc/...` is correct even though it looks like a typo).
+- **Absolute working directory** — the absolute path of the target repo. Especially important for monorepos where a directory name repeats in the path, which reads like a typo but is correct.
 - **CLI tool conventions from the user's CLAUDE.md** — if the user's CLAUDE.md prefers specific replacements (e.g. `fd` over `find`, `rg` over `grep`, `eza` over `ls`, `bat` over `cat`), restate those rules in the subagent prompt. Subagents that violate them trip the harness's security warning system.
 - **Strict output format** — when expecting JSON, end the prompt with "Return ONLY the JSON, no prose." Subagents are chatty by default and will narrate unless told not to.
 - **Absolute paths only** — never use relative paths inside subagent prompts; subagents may resolve them against an unexpected CWD.

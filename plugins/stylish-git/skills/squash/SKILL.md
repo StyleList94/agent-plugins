@@ -1,6 +1,6 @@
 ---
 name: squash
-description: Squash commits on branch into one, with a message in the repository's own voice
+description: Squash commits on branch into one, with a message in the commit skill's convention
 argument-hint: "[N]"
 tools: Bash, Read, AskUserQuestion
 ---
@@ -49,12 +49,12 @@ nothing a reader could not get from the PR.
 
 Follow the `commit` skill for everything else:
 
-- **Form** - subject language, prefix style, scope usage, case and length come from Layer 1 of
-  the `commit` skill, measured against this repository. Do not assume a convention.
+- **Form** - the `commit` skill's Layer 1 convention (`type(scope): description [KEY-123]`),
+  in the language its script reads from this repository.
 - **Body** - only when there is a constraint a future editor of this code must preserve
   (Layer 2, about three lines). Otherwise the subject is the whole message.
-- **Evidence** - measurements, verification and alternatives go in the PR/MR description, not
-  in the squashed commit.
+- **Evidence** - measurements, test counts and verification output are not commit content
+  (Layer 2 rule 5). The PR description keeps only what passes its own test.
 
 Because the squashed subject becomes the whole branch's entry in the history, it must cover
 the branch as a unit rather than describing whichever commit happened to be last.
@@ -66,9 +66,9 @@ the branch as a unit rather than describing whichever commit happened to be last
    - No argument: Find merge base with `git merge-base origin/<base> HEAD`
    - Numeric argument: Use `HEAD~N`
 3. **Show commits**: Display commits to squash (chronological order)
-4. **Measure the repo**: Run Layer 1 of the `commit` skill so the subject matches this repo
-5. **Get title**: Ask the user for the subject (using AskUserQuestion), offering a measured-form
-   suggestion that covers the whole branch
+4. **Read the repo**: Run the `commit` skill's script for the language and the merge settings
+5. **Get title**: Ask the user for the subject (using AskUserQuestion), offering a suggestion in the
+   convention that covers the whole branch
 6. **Build message**: Subject alone, plus a constraint body only when one exists
 7. **Execute squash**: `git reset --soft <target> && git commit`
 8. **Done**: Show push instructions (user pushes manually)
@@ -82,7 +82,7 @@ the branch as a unit rather than describing whichever commit happened to be last
    - No argument: `git merge-base origin/<base> HEAD`
    - Argument N: `HEAD~N`
 5. Show commits with `git log --oneline --reverse <target>..HEAD` (chronological)
-6. Measure the repository's commit form (`commit` skill, Layer 1)
+6. Read the language and merge settings (`commit` skill's script)
 7. Ask the user for the subject (using AskUserQuestion)
 8. Build the commit message:
    - Subject line
@@ -99,8 +99,8 @@ the branch as a unit rather than describing whichever commit happened to be last
 
 ## Examples
 
-Subjects below are written in the form measured from the example repository. In a repository
-with a different measured form, the same skill produces a subject in that form instead.
+Subjects below follow the `commit` skill's convention in an English repository. In a repository
+whose subjects are in another language, the description is written in that language.
 
 **Squash all commits:**
 
@@ -114,7 +114,7 @@ with a different measured form, the same skill produces a subject in that form i
    2. def5678 fix: button style
    3. ghi9012 refactor: clean up
 
--> Measured profile: conventional prefix 97% · scope 5% · lowercase · median 24 / p90 37
+-> Repo: English · survives: squash keeps the PR title
 
 -> Enter subject: feat: add button component with styling
 
