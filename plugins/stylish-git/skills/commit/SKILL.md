@@ -1,6 +1,6 @@
 ---
 name: commit
-description: Write a commit message in the target repository's own voice - conventions measured from its history, never assumed
+description: Write a commit message in a fixed Conventional Commits form - only the language is read from the target repository
 tools: Bash, Read, Grep
 ---
 
@@ -18,105 +18,161 @@ If a required sibling skill is missing, report the dependency rather than invent
 
 # Commit
 
-Analyze the staged changes and write a commit message that matches **this repository's** history.
+Write the commit message for the staged changes.
 
 Two layers, answering different questions:
 
 | Layer | Question | Source |
 |---|---|---|
-| **Observed** | What does a commit here *look like*? | Measured from the repo's own history |
+| **Convention** | What does a commit look like? | Fixed by this skill: Conventional Commits 1.0.0, extended below |
 | **Invariant** | What belongs *in* a commit rather than somewhere else? | Argued from how the history is consumed |
 
-Nothing about form is declared in this skill. The governing rule:
+**The form does not follow the repository's history.** A history accumulates whatever its authors and their tools wrote, and copying it reproduces the worst of it. The repository decides two things only: the **language** of the message, and **what survives the merge** (Layer 2 rule 1). A rule the repository enforces mechanically (a commit linter, a CI check on PR titles) outranks this convention, because a message it rejects never lands.
 
-> **Never invent a convention the repository does not already have.**
+## Layer 1 - The convention
 
-If it does not use scopes, do not attach one. If its subjects run long, do not truncate them to fit a limit borrowed from elsewhere.
+```text
+type(scope): description [KEY-123]
+```
 
-## Layer 1 - Measure the repository
+### 1. type - one from this list
 
-### 1. Run the measurement
+| type | when |
+|---|---|
+| `feat` | a behavior a user or consumer can use is added |
+| `fix` | a wrong behavior is corrected |
+| `perf` | same behavior, faster or lighter |
+| `refactor` | same behavior, different structure |
+| `test` | tests only |
+| `docs` | documentation or comments only |
+| `build` | build, dependencies, package configuration |
+| `ci` | CI workflows |
+| `chore` | maintenance that fits none of the above, formatting included |
+| `revert` | a revert |
+
+A change that fits two types is two commits. There is no `style`: the word reads as a stylesheet change, so formatting-only work is `chore`.
+
+### 2. scope - only when the change stays inside one unit
+
+The name of the one app, package or module the change is confined to, lowercase kebab-case. A change across several has no scope. Never a bracketed path (`[apps/x/y]`) in place of a scope or beside one.
+
+### 3. description - in the repository's language, stating the behavior
+
+The language is the one measured from the repository (below). Everything else about the description is fixed:
+
+- **Korean**: 한다체, a sentence that states the behavior after the change. Never 합니다체, although the body and the PR description are written in it: in a squash repo this subject is also the PR title. Technical terms, product and tool names, and identifiers keep their original spelling, never transliterated into Hangul or translated; a particle attaches to them with no space.
+- **English**: imperative, lowercase first letter, no trailing period (`treat an unparsable session as a guest`).
+- **Any language**: a description that names no behavior is not one. "리뷰 반영", "lint 수정", "수정", "wip", "address review", "fix lint" and their kind are never subjects.
+
+### 4. length - 50 characters at most
+
+Counted in characters, without the ticket key. Past that, shorten the description or split the commit.
+
+### 5. ticket key - only on a subject that is the title
+
+The ticket key (`ABC-123`, read from the branch name) belongs to the title of the merged change: the PR title, or the mainline subject that takes its place. End that subject with ` [ABC-123]`. One key only, never in a `Refs:` footer, because a squash that drops bodies drops footers with them.
+
+Other branch commits carry no key. Where subjects survive as lines under the squash title, or as commits behind a merge commit, the title already ties them to the ticket, and a key on every line is noise. A commit carries the key only when its subject can itself become the title:
+
+- the branch's first commit, in a repository where a one-commit PR's subject becomes the mainline subject (Layer 2 rule 1)
+- every commit, where there is no review surface (Layer 2 rule 5), because each one lands on the mainline as written
+
+### 6. footers - none written by hand
+
+No `BREAKING CHANGE` footer and no `!` marker: nothing here reads them to compute a version, and what a breaking change requires of others is rollout content for the PR description. The only trailer is the co-author line the committing tool adds. Never a session link or session trailer.
+
+### 7. body language and `(#N)`
+
+A body (Layer 2 decides whether there is one) is written in the measured language; in Korean, 합니다체. The register applies to the body only; the subject stays 한다체 (rule 3). Never append `(#N)`: the merge adds it, and at commit time the number does not exist.
+
+## Reading the repository
 
 ```bash
 bash "<loaded-skill-directory>/scripts/commit-profile.sh"
 ```
 
-`-n` changes the sample size; `-x '<author regex>'` excludes a bot the default filter missed.
+It reports two things: the **language** of the repository's human commit subjects, and its **merge settings**. Nothing else in the history is read, because nothing else decides anything.
+
+- **Language**: write in the majority language of the subjects. Below 5 human subjects there is no majority to read; ask the user which language to use.
+- **Merge settings**: Layer 2 rule 1 reads them.
+
+`-n` changes the sample size; `-x '<author regex>'` excludes a bot the default filter missed; `-s '<subject regex>'` excludes commits a tool generated under a human's name.
 
 **The measurement lives in a script, and has to stay there.** A skill body is rewritten by
 slash-command argument substitution before it reaches you: a `$` followed by a digit is replaced
 with the words the user passed. awk field references have exactly that shape, so inlining awk here
 means any invocation carrying arguments corrupts the programs *and* swallows the user's request.
-It does not error - measured on a 400-commit repo it disabled the bot filter, moved every ratio,
-and reported a subject length of `median 0 p90 0`. Script files are not substituted. Do not move
-awk back into this file.
+Script files are not substituted. Do not move awk back into this file.
 
-**Pitfalls the script encodes. Each of these has produced a wrong reading in practice:**
+**Pitfalls the script encodes:**
 
-- **Bots.** A mainline that is half automated version bumps halves every ratio you compute. The filter catches the common naming patterns; the author histogram is printed so you can spot the ones it misses and re-run with `-x`.
-- **The filter has to reach every axis, not just the subjects.** Any axis measured by a second, unfiltered `git log` quietly readmits the bots. Measured on a bot-heavy repo, an unfiltered body axis reported a median body of 1 line where the human median was 10 - and a 1-line median is exactly what tells the skill "this repo does not use bodies". The script prints the sample size on both the subject and body axes; if they differ, an axis is unfiltered.
+- **Bots and tools decide the language if they are counted.** An English release bot or a generator that commits under a person's name can outnumber the people. The author filter catches common bot names; the author histogram and the repeated-shapes list are printed so you can re-run with `-x` or `-s`.
 - **Merge commits.** `--no-merges` is not optional - nobody wrote those subjects.
-- **Squash detection.** Do not conclude "squash-merged" from a `(#N)` subject suffix. Whether it appears depends on the PR title convention, so it can be absent in a repo that squashes every PR. Use parent counts, and treat `(#N)` as a secondary signal only.
-- **Trailers are not a body.** A commit whose body is only `Co-authored-by:` or `Signed-off-by:` lines registers as having one. In a repo that adds a co-author trailer to every squash this reads as near-total body usage with a median of 1 line - the same false signal as an unfiltered bot. They are stripped before deciding a body exists.
-- **Never use NUL as an awk record separator.** `RS="\0"` is an empty string to awk, which silently switches it to paragraph mode and splits on blank lines instead. It does not error; it returns a plausible number. It reported 100% body usage against a true 41%. The script uses `\001`.
-- **Never pass a regex through `awk -v`.** `-v` runs escape processing over the value, so `\[` arrives as `[` and the pattern silently widens. The bot filters are written as awk regex literals for this reason; the caller-supplied `-x` pattern comes in through `ENVIRON`, which does not.
-
-### 2. Read the axes
-
-What each measurement decides:
-
-| Measurement | Decision |
-|---|---|
-| non-ascii ratio | the language of the subject - follow the majority, do not translate the repo |
-| conventional prefix ratio | whether to use a `type:` prefix at all. Low ratio means the repo writes plain subjects; write one |
-| scoped ratio + scope list | whether to attach a scope, and which scope vocabulary actually exists here |
-| starts-uppercase, trailing period | capitalization and punctuation |
-| length median and p90 | the length to aim for and the ceiling. There is no fixed character limit |
-| type list | the type vocabulary. Use what appears; never import types the repo has never used |
-| with-body %, median body lines | **one-directional**: if bodies are essentially absent, do not write one. A repo that has bodies does not oblige you to add one - Layer 2 decides that |
-| parent counts | how branch work lands. A meaningful share of 2-parent commits means merge commits preserve branch history; nearly all 1-parent means squash or rebase discards it |
-| `(#N)` suffix ratio | that suffix is added by the merge, not by the author. **Never fabricate one** - at commit time the number does not exist yet |
-
-### 3. When the sample is too small
-
-Below roughly 20 human commits there is no convention to observe. Say so and ask the user which convention to follow. Do not fill the gap with a default.
+- **What survives the merge is a repository setting, not a history fact.** The history cannot show that branch bodies were dropped, because they are simply absent. The script reads the forge's merge settings; when it cannot, say so rather than inferring them, and fall back to parent counts only for whether branch commits survive as commits.
+- **Never pass a regex through `awk -v`.** `-v` runs escape processing over the value, so `\[` arrives as `[` and the pattern silently widens. The bot filters are awk regex literals; the caller-supplied patterns come in through `ENVIRON`.
 
 ## Layer 2 - Invariants
 
-Form belongs to the repository. Placement does not. These four hold in any repository, and each is argued from mechanics rather than taste.
+Layer 1 fixes the form. These decide what goes where, hold in any repository, and each is argued from mechanics rather than taste.
 
-### 1. Never write a bullet list of the sub-changes
+### 1. Know what of this commit survives the merge
+
+Read the merge settings the script reports. They decide who ever reads a branch commit:
+
+| Setting | Subject | Body |
+|---|---|---|
+| merge commit or rebase | survives as written | survives |
+| squash, message = commit messages, PR of one commit | becomes the mainline subject; the PR title is ignored | survives |
+| squash, message = commit messages, PR of several commits | survives forever as a `* subject` line under the PR title | dropped |
+| squash, message = PR body or blank | dropped | dropped |
+
+Two consequences follow, and both are about the subject:
+
+- **Where subjects survive, every subject is permanent history.** "address review", "fix lint", "wip", a revert and its revert all land on the mainline as lines of the squash. Write a subject that states a behavior, and fold a follow-up into the commit it corrects before the branch is pushed (`commit --amend`, or `commit --fixup` + `rebase --autosquash`). After a push, never rewrite; batch the next fixes into one commit.
+- **Where a single commit becomes the mainline subject, write that subject as the PR title.** A PR title that differs from it never reaches the history.
+
+A body is written for a reader who will see it. Where bodies are dropped, a constraint the next editor must keep goes into a code comment beside the code it constrains, or into the PR description - never only into the commit.
+
+### 2. A commit is one change a reviewer reads as one story
+
+A task, or one round's fixes to one area. Never one commit per finding, per tweak, or per message: a fix minutes after a commit belongs in that commit or in the next one. Do not fold unrelated areas together to cut the count either - two areas, two commits.
+
+### 3. Never write a bullet list of the sub-changes
 
 Whichever merge style the repo uses, that list carries no information:
 
-- **Squash or rebase repo** - branch commit messages are discarded at merge. The list is written to be thrown away.
-- **Merge-commit repo** - those commits are already in the history, individually. The list duplicates them.
+- **Squash repo** - the subjects of the branch are what the merge keeps, if it keeps anything. A list in the body restates them or is thrown away.
+- **Merge-commit or rebase repo** - those commits are already in the history, individually. The list duplicates them.
 
 There is no repo shape in which the reader gains something `git log` would not already give them.
 
-### 2. A body only when there is a constraint to preserve, about three lines
+### 4. A body only when there is a constraint to preserve, about three lines
 
-A commit body is read at `git blame` time, not at review time. Its reader is someone about to change this code, asking what they must not break. So write a body only when such a constraint exists:
+A surviving commit body is read at `git blame` time, not at review time. Its reader is someone about to change this code, asking what they must not break. So write a body only when such a constraint exists and rule 1 says the body survives:
 
 - an ordering or timing requirement the diff does not show
 - an upstream bug or API limitation being worked around
 - a deliberate trade-off a future editor would otherwise "fix" back
 
-If nothing in that class exists, the subject alone is the entire message.
+If nothing in that class exists, the subject alone is the entire message. Deploy steps (merge order, manual teardown, a switch to flip) are review-time content: they go to the PR description even when they also appear here.
 
-### 3. Evidence goes to the review surface - when one exists
+### 5. Evidence is not commit content - and does not move to the PR wholesale
 
-Measurements, sample sizes, verification output, alternatives considered, rollout notes: these are review-time artifacts and belong in the PR/MR description.
+Measurements, sample sizes, test counts and verification output are working material, not record. They stay out of the commit. Moving them into the PR description instead is the same mistake one place over: the PR keeps only what passes its own test (a cause, a rejected alternative, a deploy step), and the rest is dropped. A number survives only when it is the reason for the change.
 
-**Conditional.** With no review surface the commit is the only record, and this rule is void - keep the reasoning in the commit. Detect it:
+**With no review surface** the commit is the only record: the cause, the rejected alternative and any deploy step stay in the commit body. Raw measurements and test counts still do not. Detect it:
 
 ```bash
 [ -d .github ] || [ -d .gitlab ] || git log -n 200 --pretty=format:'%s' | awk '/\(#[0-9]+\)$|![0-9]+$/'
 ```
 
-### 4. Draft the review-surface description before committing
+### 6. Draft the review-surface description before committing
 
-This is the actual mechanism behind bloated commit messages: at commit time the PR does not exist yet, so the reasoning has nowhere to go and gets parked in the commit. Give it a home first, and the commit ends up short because everything else already has a place. Skip when rule 3 is void.
+This is the actual mechanism behind bloated commit messages: at commit time the PR does not exist yet, so the reasoning has nowhere to go and gets parked in the commit. Give it a home first, and the commit ends up short because everything else already has a place. Skip when there is no review surface (rule 5).
+
+### 7. Nothing from the working session
+
+A commit outlives the session that wrote it. Keep out of subjects, bodies and trailers: names of agents, reviewers or tools that found a problem, internal task or finding IDs, session links or session trailers, and verification narration. Reference another repository's PR as `owner/repo#N`; a bare `#N` links this repository's PR of that number.
 
 ## Process
 
@@ -126,9 +182,9 @@ This is the actual mechanism behind bloated commit messages: at commit time the 
    blanket add sweeps them into the commit. Report anything you deliberately left unstaged so the
    user can see what was excluded and why.
 2. `git diff --staged`. If it is empty, stop and say so.
-3. Run Layer 1 against this repository and report the measured profile before proposing anything.
-4. Compose the subject in the measured form: language, prefix style, scope usage, case, length target.
-5. Decide the body by Layer 2 - a constraint gets up to about three lines, otherwise no body. Never a bullet list.
+3. Run the script and report the language and what survives the merge before proposing anything.
+4. Compose the subject by Layer 1, in the measured language, with the branch's ticket key at the end only when rule 5 says this subject can become the title.
+5. Decide the body by Layer 2 - a constraint gets up to about three lines when the body survives, otherwise no body. Never a bullet list.
 6. If a review surface exists and this work becomes a PR, draft that description first.
 7. Present the message, then the ready-to-run command.
 
@@ -136,10 +192,10 @@ Stage only what this task touched, and never push. Committing is the user's call
 
 ## Output
 
-Report what was measured, then the message:
+Report what was read, then the message:
 
 ```text
-profile: <language> · <prefix style> · scope <N>% · <case> · length median <M> p90 <P> · <merge style>
+repo: <language> · survives: <subject/body per Layer 2 rule 1>
 
 <subject>
 
