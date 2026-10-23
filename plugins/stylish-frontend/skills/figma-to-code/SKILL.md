@@ -184,7 +184,7 @@ Use Tailwind v4 patterns with auto-calculated spacing:
 5. Colors (bg-*, text-*, border-*)
 6. Effects (shadow-*, rounded-*)
 7. Responsive (sm:, md:, lg:)
-8. State (hover:, focus:)
+8. State (hover:, focus-visible:)
 
 **With CSS Variables (@theme):**
 
@@ -254,8 +254,8 @@ Generated components follow project conventions:
 ```text
 src/components/
 └── ComponentName/
-    ├── index.tsx        # Main component
-    └── ComponentName.tsx # (or single file)
+    ├── ComponentName.tsx # Component (or a single file without the folder)
+    └── index.ts          # Re-exports only, no logic
 ```
 
 **Astro Project:**
