@@ -22,29 +22,10 @@ describe('ComponentName', () => {
       await expect.element(page.getByText('Content')).toBeVisible()
     })
 
-    it('should accept custom className', async () => {
-      await render(<ComponentName className="custom-class">Content</ComponentName>)
-      await expect.element(page.getByText('Content')).toHaveClass('custom-class')
-    })
-
     it('should forward ref', async () => {
       const ref = createRef<HTMLElement>()
       await render(<ComponentName ref={ref}>Content</ComponentName>)
       expect(ref.current).toBeInstanceOf(HTMLElement)
-    })
-  })
-
-  describe('Visual Properties', () => {
-    it('should apply variant classes', async () => {
-      await render(<ComponentName variant="primary">Content</ComponentName>)
-      // Verify variant styling applied
-      await expect.element(page.getByText('Content')).toBeVisible()
-    })
-
-    it('should apply size classes', async () => {
-      await render(<ComponentName size="lg">Content</ComponentName>)
-      // Verify size styling applied
-      await expect.element(page.getByText('Content')).toBeVisible()
     })
   })
 

@@ -78,7 +78,7 @@ Apply classes in this order for consistency and readability:
 5. **Colors** - Background, text color, border color
 6. **Effects** - Shadow, rounded, opacity
 7. **Responsive** - sm:, md:, lg:, xl:
-8. **State** - hover:, focus:, active:, disabled:
+8. **State** - hover:, focus-visible:, active:, disabled:
 
 ### Examples
 
@@ -100,7 +100,7 @@ Apply classes in this order for consistency and readability:
     // Effects
     'rounded-md shadow-sm',
     // State
-    'hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500',
+    'hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
     // Disabled
     'disabled:opacity-50 disabled:cursor-not-allowed'
   )}
@@ -259,11 +259,8 @@ Mobile-first responsive utilities:
 Focus state patterns:
 
 ```tsx
-// Focus ring
-<button className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-
-// Focus visible (keyboard only)
-<button className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+// Focus ring, keyboard focus only (`:focus` would also ring on mouse click)
+<button className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
 
 // Disabled states
 <button className="disabled:opacity-50 disabled:cursor-not-allowed">
