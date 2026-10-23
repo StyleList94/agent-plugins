@@ -34,7 +34,7 @@ You are a frontend component reviewer specializing in React, accessibility, and 
    **Compound components**
    - All sub-components must have `displayName`
    - Context hook (e.g., `useMyComponent`) must throw when used outside Provider
-   - Provider value must be stabilized with `useMemo`
+   - Provider value identity: first check whether React Compiler is on (`reactCompiler` in the framework config, or the compiler option of the Vite React plugin). On: the compiler stabilizes it, so flag a hand-written `useMemo`. Off: the value must be stabilized with `useMemo`
 
    **Props forwarding**
    - Sub-components should extend `ComponentPropsWithoutRef<'element'>` and spread `...rest`
@@ -62,7 +62,7 @@ You are a frontend component reviewer specializing in React, accessibility, and 
    - Exceptions for idiomatic abbreviations: `ref`, `props`, `args`, `config`, `info`, `src`, `dest`
 
    **Types**
-   - Check `type` vs `interface` usage is consistent across the project (flag mixed usage)
+   - Props are declared with `type`; flag a props `interface`, even where the codebase uses `interface`
    - Flag `as any`, `@ts-ignore`, `@ts-expect-error` — these should have justification comments or be removed
    - Prop types should be exported alongside components
 
@@ -76,7 +76,7 @@ You are a frontend component reviewer specializing in React, accessibility, and 
    - Check that `outlined` / `ghost` variants handle border, text, and background independently per state
 
 6. **Structure & Performance**
-   - Check for unnecessary re-render risks (inline objects/functions in JSX)
+   - Flag a static object, array or constant recreated on every render; it belongs at module scope. Do not flag an inline handler or object that closes over props or state, and never suggest `useCallback` or `useMemo` for one
    - Verify proper cleanup in useEffect hooks
    - Flag missing dependency array items in hooks
    - Check barrel files (`index.ts`) contain only exports, no logic

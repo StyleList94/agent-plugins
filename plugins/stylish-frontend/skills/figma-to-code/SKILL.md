@@ -115,7 +115,7 @@ Before generating code, confirm understanding with the user:
 **React (.tsx) - Default:**
 
 ```tsx
-interface ComponentProps {
+export type ComponentProps = {
   className?: string
   children?: React.ReactNode
 }
