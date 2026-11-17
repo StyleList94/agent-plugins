@@ -123,7 +123,7 @@ Read the merge settings the script reports. They decide who ever reads a branch 
 |---|---|---|
 | merge commit or rebase | survives as written | survives |
 | squash, message = commit messages, PR of one commit | becomes the mainline subject; the PR title is ignored | survives |
-| squash, message = commit messages, PR of several commits | survives forever as a `* subject` line under the PR title | dropped |
+| squash, message = commit messages, PR of several commits | survives forever as a `* subject` line under the PR title | dropped when the merger trims the merge box, which this skill assumes; GitHub's default box keeps every commit's body |
 | squash, message = PR body or blank | dropped | dropped |
 
 Two consequences follow, and both are about the subject:
